@@ -48,13 +48,13 @@ The environment’s “physics” are built on a **linear demand model**.
 The expected demand μ for a given price $p$ is:
 
 $$
-\mu_t = c_t - b \cdot p_t
+mu_t = c_t - b \cdot p_t
 $$
 
 The observed demand $( d_t )$ includes Gaussian noise:
 
 $$
-d_t = \max(0, \mu_t + \mathcal{N}(0, \sigma^2))
+d_t = \max(0, mu_t + \mathcal{N}(0, \sigma^2))
 $$
 
 The agent’s objective is to learn the parameters of this model to maximize total revenue.
