@@ -78,6 +78,7 @@ To design and implement an Adaptive Pricing System using Reinforcement Learning 
 ### Performance Evaluation
 
 Compare RL models with:
+
 - Static Pricing
 - Rule-Based Pricing
 
@@ -91,46 +92,46 @@ Compare RL models with:
 
 ## Technology Stack
 
-| Category | Tools / Technologies |
-|----------|---------------------|
-| **Programming Language** | Python |
-| **Data Handling** | Pandas, NumPy, Scikit-learn |
-| **Reinforcement Learning** | Custom Q-Learning, PyTorch (DQN) |
-| **Visualization** | Matplotlib, Seaborn, Streamlit |
-| **API Development** | FastAPI / Flask |
-| **Simulation** | Custom environment (OpenAI Gym inspired) |
-| **Deployment** | Docker |
+| Category                   | Tools / Technologies                     |
+| -------------------------- | ---------------------------------------- |
+| **Programming Language**   | Python                                   |
+| **Data Handling**          | Pandas, NumPy, Scikit-learn              |
+| **Reinforcement Learning** | Custom Q-Learning, PyTorch (DQN)         |
+| **Visualization**          | Matplotlib, Seaborn, Streamlit           |
+| **API Development**        | FastAPI / Flask                          |
+| **Simulation**             | Custom environment (OpenAI Gym inspired) |
+| **Deployment**             | Docker                                   |
 
 ## Project Timeline
 
-| Week | Milestone |
-|------|-----------|
-| 1 | Literature review, finalize project scope, identify datasets |
-| 2 | Data collection and preprocessing |
-| 3 | Feature engineering (time & demand features) |
-| 4 | MDP formulation and environment design |
-| 5 | Implement Q-Learning |
-| 6 | Train and tune RL agent |
-| 7 | Evaluate baseline models |
-| 8 | Implement Deep Q-Network (DQN) |
-| 9 | Analyze and test DQN generalization |
-| 10 | Build dashboard and REST API |
-| 11 | Dockerize and scale system |
-| 12 | Performance evaluation and reporting |
-| 13 | Documentation and results analysis |
-| 14 | Final presentation and submission |
+| Week | Milestone                                                    |
+| ---- | ------------------------------------------------------------ |
+| 1    | Literature review, finalize project scope, identify datasets |
+| 2    | Data collection and preprocessing                            |
+| 3    | Feature engineering (time & demand features)                 |
+| 4    | MDP formulation and environment design                       |
+| 5    | Implement Q-Learning                                         |
+| 6    | Train and tune RL agent                                      |
+| 7    | Evaluate baseline models                                     |
+| 8    | Implement Deep Q-Network (DQN)                               |
+| 9    | Analyze and test DQN generalization                          |
+| 10   | Build dashboard and REST API                                 |
+| 11   | Dockerize and scale system                                   |
+| 12   | Performance evaluation and reporting                         |
+| 13   | Documentation and results analysis                           |
+| 14   | Final presentation and submission                            |
 
 ## Expected Outcomes
 
- **Adaptive Pricing**: Real-time price adjustments based on market factors
+**Adaptive Pricing**: Real-time price adjustments based on market factors
 
- **Revenue Optimization**: Higher cumulative revenue than static/rule-based methods
+**Revenue Optimization**: Higher cumulative revenue than static/rule-based methods
 
- **Demand Insights**: Learn demand elasticity and customer behavior
+**Demand Insights**: Learn demand elasticity and customer behavior
 
- **Scalable System**: REST API + Streamlit Dashboard + Dockerized deployment
+**Scalable System**: REST API + Streamlit Dashboard + Dockerized deployment
 
- **Business Insights**: Data-driven recommendations for pricing and inventory strategies
+**Business Insights**: Data-driven recommendations for pricing and inventory strategies
 
 ## Future Enhancements
 
@@ -140,6 +141,5 @@ Compare RL models with:
 - Include inventory and supply chain constraints
 - Multi-product pricing and cross-selling optimization
 - Explainable pricing using SHAP or LIME
-
 
 ---
