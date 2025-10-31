@@ -66,7 +66,7 @@ The agent’s objective is to learn the parameters of this model to maximize tot
 The intercept term $c_t$ is **context-dependent**, varying dynamically with external features:
 
 $$
-c_t = \theta_0 + \theta_1 \sin(day) + \theta_2 \cos(day) + \theta_3 \text{traffic}_t + \theta_4 \text{comp\_price}_t
+c_t = \theta_0 + \theta_1 \sin(\text{day}_t) + \theta_2 \cos(\text{day}_t) + \theta_3\, \text{traffic}_t + \theta_4\, \text{comp\_price}_t
 $$
 
 Thus, the agent must learn the **6-dimensional parameter vector**:
@@ -79,12 +79,12 @@ $$
 
 ### 3. The Action–Reward Loop
 
-| Component | Description |
-|------------|--------------|
-| **State (Sₜ)** | Context vector: [sin(day), cos(day), traffic, comp_price] |
-| **Action (Aₜ)** | Price $( p_t \in [5.00, 50.00] )$  |
-| **Reward (Rₜ)** | Observed revenue $( R_t = p_t \times d_t )$ |
-| **Goal** | Maximize cumulative revenue $( \sum_t R_t )$ |
+| Component       | Description                                               |
+| --------------- | --------------------------------------------------------- |
+| **State (Sₜ)**  | Context vector: [sin(day), cos(day), traffic, comp_price] |
+| **Action (Aₜ)** | Price $( p_t \in [5.00, 50.00] )$                         |
+| **Reward (Rₜ)** | Observed revenue $( R_t = p_t \times d_t )$               |
+| **Goal**        | Maximize cumulative revenue $( \sum_t R_t )$              |
 
 ---
 
@@ -92,12 +92,12 @@ $$
 
 All agents are implemented in **`src/agents.py`**.
 
-| Agent | Description | Behavior |
-|--------|--------------|-----------|
-| **Static (Baseline)** | Plays one fixed, optimal price (computed via `run_static.py`) | Non-adaptive |
-| **Greedy OLS** | Performs online linear regression (OLS). Always exploits current parameter estimate. | Exploitative |
-| **Thompson Sampling** | Bayesian posterior sampling over parameters. Trades off exploration and exploitation. | Adaptive |
-| **Oracle** | Has access to true environment parameters (TRUE_THETA). Serves as the upper bound. | Optimal |
+| Agent                 | Description                                                                           | Behavior     |
+| --------------------- | ------------------------------------------------------------------------------------- | ------------ |
+| **Static (Baseline)** | Plays one fixed, optimal price (computed via `run_static.py`)                         | Non-adaptive |
+| **Greedy OLS**        | Performs online linear regression (OLS). Always exploits current parameter estimate.  | Exploitative |
+| **Thompson Sampling** | Bayesian posterior sampling over parameters. Trades off exploration and exploitation. | Adaptive     |
+| **Oracle**            | Has access to true environment parameters (TRUE_THETA). Serves as the upper bound.    | Optimal      |
 
 ---
 
@@ -109,7 +109,7 @@ All agents are implemented in **`src/agents.py`**.
 python -m venv venv
 source venv/bin/activate
 pip install -r requirements.txt
-````
+```
 
 ---
 
@@ -183,9 +183,9 @@ The experiment was run for **10 independent seeds** with **T = 1000 timesteps**.
 
 ## Key Insights
 
-* **Dynamic Pricing is Effective** — The environment exhibits a **7.26% revenue headroom** only capturable through adaptive pricing.
-* **Learning Works** — Both **Thompson Sampling** and **Greedy OLS** significantly outperform static pricing (**p < 0.0001**).
-* **Thompson ≈ Greedy** — The difference is not statistically significant (**p = 0.084**), implying both converge comparably under noise.
+- **Dynamic Pricing is Effective** — The environment exhibits a **7.26% revenue headroom** only capturable through adaptive pricing.
+- **Learning Works** — Both **Thompson Sampling** and **Greedy OLS** significantly outperform static pricing (**p < 0.0001**).
+- **Thompson ≈ Greedy** — The difference is not statistically significant (**p = 0.084**), implying both converge comparably under noise.
 
 ---
 
