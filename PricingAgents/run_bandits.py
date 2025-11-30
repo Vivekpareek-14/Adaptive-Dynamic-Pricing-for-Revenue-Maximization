@@ -1,130 +1,111 @@
 import os
 import time
-
-import matplotlib.pyplot as plt
+import torch
 import numpy as np
 import pandas as pd
 import seaborn as sns
+import matplotlib.pyplot as plt
 
+# --- IMPORTS ---
 from agents import GreedyOLSAgent, PolicyAgent, StaticAgent, ThompsonAgent
-from env import GAUSSIAN_NOISE_SIGMA, PRICE_BOUNDS, TRUE_THETA, PricingEnv
-from utils import find_optimal_static_price, oracle_policy_factory, summarize_all
+from env import PricingEnv  
 
+try:
+    from pricing_bandit.agents_dnn import NeuralThompsonAgent
+except ImportError:
+    from agents_dnn import NeuralThompsonAgent
 
-def run_one_agent(name, agent, seed, T=1000):
+# --- ADAPTERS ---
+class NeuralAdapter:
+    def __init__(self, context_dim, price_bounds, seed):
+        torch.manual_seed(seed); np.random.seed(seed)
+        self.agent = NeuralThompsonAgent(
+            context_dim=context_dim, price_bounds=price_bounds,
+            hidden_sizes=[64, 64], dropout_p=0.10, lr=0.01
+        )
+    def act(self, ctx, t):
+        if t < 50: return np.random.uniform(10, 90)
+        self.agent._update_stats(ctx)
+        return self.agent.select_price(self.agent.normalize(ctx))
+    def update(self, price, ctx, demand):
+        self.agent.store_transition(self.agent.normalize(ctx), price, price*demand)
+
+class LinearAdapter:
+    def __init__(self, agent_cls, **kwargs): self.agent = agent_cls(n_features=6, **kwargs)
+    def act(self, ctx, t): return self.agent.act(np.array([1.0, ctx[0], ctx[1], ctx[2], ctx[3], 0.0]), t)
+    def update(self, price, ctx, demand): self.agent.update(price, np.array([1.0, ctx[0], ctx[1], ctx[2], ctx[3], -price]), demand)
+
+class OracleWrapper:
+    def act(self, ctx, t): return 50.0 
+    def update(self, p, c, d): pass
+
+# --- RUNNER ---
+def run_one_agent(name, agent, seed, T):
     env = PricingEnv(T=T, seed=seed)
-    forced_exp = int(env.forced_exploration)
-    ctx = env.reset()
-    done = False
-    t = 0
-    logs, cumulative = [], 0.0
+    env.reset()
+    done, t, cumulative = False, 0, 0.0
+    logs = []
 
     while not done:
-        if t < forced_exp:
-            price = float(env.rng.uniform(*env.price_bounds))
-            forced = True
-        else:
-            price = agent.act(ctx, t)
-            forced = False
-
-        ctx_next, demand, revenue, done, info = env.step(price)
-        agent.update(price, ctx, demand)
+        ctx = env.get_agent_context() if name=="neural" else env.curr_context
+        price = agent.act(ctx, t)
+        _, demand, revenue, done, info = env.step(price)
+        
+        if name == "oracle": revenue, price = info["oracle_expected_revenue"], info["oracle_price"]
+        else: agent.update(price, ctx, demand)
+        
         cumulative += revenue
-
-        logs.append(
-            {
-                "seed": seed,
-                "t": t,
-                "agent": name,
-                "price": price,
-                "revenue": revenue,
-                "cum_revenue": cumulative,
-                "oracle_rev": info["oracle_expected_revenue"],
-                "forced": forced,
-            }
-        )
-        ctx = ctx_next
+        logs.append({"seed": seed, "t": t, "agent": name, "price": price, "revenue": revenue, "cum_revenue": cumulative, "oracle_rev": info["oracle_expected_revenue"]})
         t += 1
-    return logs, cumulative
+    return logs
 
-
-def run_experiment(seeds=None, T=1000, results_dir="results"):
+def run_experiment(seeds=None, T=4000, results_dir="results"):
+    if seeds is None: seeds = range(2000, 2005)
     os.makedirs(results_dir, exist_ok=True)
-    if seeds is None:
-        seeds = range(2000, 2010)
-
-    # 1. Get Baseline dynamically
-    print("Step 1: Finding optimal static baseline...")
-    OPTIMAL_PRICE = find_optimal_static_price()
-    print("-" * 30)
-
-    # 2. Setup Oracle
-    oracle_fn = oracle_policy_factory(TRUE_THETA, *PRICE_BOUNDS)
-
-    all_logs, final_rows = [], []
-    start = time.time()
-
-    print(f"Step 2: Running experiment on {len(seeds)} seeds...")
+    all_logs = []
+    
+    print(f"Starting Experiment (T={T})...")
     for seed in seeds:
-        # Instantiate fresh agents per seed
         agents = {
-            "static": StaticAgent(fixed_price=OPTIMAL_PRICE),
-            "greedy_ols": GreedyOLSAgent(),
-            "thompson": ThompsonAgent(sigma_noise=GAUSSIAN_NOISE_SIGMA, seed=seed),
-            "oracle": PolicyAgent(oracle_fn),
+            "static": StaticAgent(fixed_price=55.0),
+            "linear_thompson": LinearAdapter(ThompsonAgent, seed=seed),
+            "greedy_ols": LinearAdapter(GreedyOLSAgent), # INCLUDED
+            "neural": NeuralAdapter(4, (1.0, 100.0), seed),
+            "oracle": OracleWrapper() # INCLUDED
         }
-
-        seed_results = {"seed": seed}
         for name, agent in agents.items():
-            logs, total_rev = run_one_agent(name, agent, seed, T)
-            all_logs.extend(logs)
-            seed_results[name] = total_rev
-
-        final_rows.append(seed_results)
+            all_logs.extend(run_one_agent(name, agent, seed, T))
         print(f"Seed {seed} done.")
 
-    print(f"Runtime: {time.time() - start:.2f}s")
-
-    # 3. Save Data
     df = pd.DataFrame(all_logs)
-    df_final = pd.DataFrame(final_rows)
-    df.to_csv(f"{results_dir}/results.csv", index=False)
-    df_final.to_csv(f"{results_dir}/final_summary.csv", index=False)
-
-    # 4. Plots
+    timestamp = int(time.time())
+    df.to_csv(f"{results_dir}/results_{timestamp}.csv", index=False)
+    
+    # Stats
+    print("\n" + "="*50)
+    print("FINAL CAPTURE RATES")
+    print("="*50)
+    df_sum = df.groupby(['agent', 'seed'])['revenue'].sum().groupby('agent').mean()
+    oracle_rev = df_sum['oracle']
+    for agent in df_sum.index:
+        print(f"{agent:<20} | {df_sum[agent]:,.0f} | {(df_sum[agent]/oracle_rev)*100:.2f}%")
+    
+    # Plotting
     print("Generating plots...")
-    # Revenue
-    plt.figure(figsize=(10, 6))
-    sns.lineplot(data=df, x="t", y="cum_revenue", hue="agent", ci="sd")
-    plt.title("Cumulative Revenue")
-    plt.savefig(f"{results_dir}/cumulative_revenue.png")
-
-    # Regret
+    
+    # Revenue Plot
+    plt.figure(figsize=(10,6))
+    sns.lineplot(data=df, x="t", y="cum_revenue", hue="agent", errorbar="sd")
+    plt.title("Cumulative Revenue (Includes Oracle & OLS)")
+    plt.savefig(f"{results_dir}/rev_{timestamp}.png")
+    
+    # Regret Plot
     df["regret"] = df["oracle_rev"] - df["revenue"]
-    # Group by agent/seed to cumsum, then plot mean over seeds
     df["cum_regret"] = df.groupby(["agent", "seed"])["regret"].cumsum()
-    plt.figure(figsize=(10, 6))
-    sns.lineplot(data=df, x="t", y="cum_regret", hue="agent", ci="sd")
-    plt.title("Cumulative Regret")
-    plt.savefig(f"{results_dir}/cumulative_regret.png")
-
-    # Prices (Learning Agents Only)
-    plt.figure(figsize=(10, 6))
-    learning_df = df[~df["agent"].isin(["static", "oracle"])]
-    sns.lineplot(data=learning_df, x="t", y="price", hue="agent", ci="sd")
-    plt.axhline(OPTIMAL_PRICE, color="r", linestyle="--", label="Static Opt")
-    plt.title("Price Trajectories (Learning Agents)")
-    plt.savefig(f"{results_dir}/price_trajectories.png")
-
-    # 5. Stats
-    results_dict = {
-        "thompson": df_final["thompson"].values,
-        "greedy_ols": df_final["greedy_ols"].values,
-        "static": df_final["static"].values,
-        "oracle": df_final["oracle"].values,
-    }
-    summarize_all(results_dict, baseline="static", oracle="oracle")
-
+    plt.figure(figsize=(10,6))
+    sns.lineplot(data=df, x="t", y="cum_regret", hue="agent", errorbar="sd")
+    plt.title("Cumulative Regret (Lower is Better)")
+    plt.savefig(f"{results_dir}/regret_{timestamp}.png")
 
 if __name__ == "__main__":
     run_experiment()
