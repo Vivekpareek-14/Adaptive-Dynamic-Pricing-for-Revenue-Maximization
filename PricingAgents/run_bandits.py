@@ -125,7 +125,7 @@ def run_experiment(seeds=None, T=4000, results_dir="results"):
             "static": StaticAgent(fixed_price=55.0),
             "linear_thompson": LinearAdapter(ThompsonAgent, seed=seed),
             "greedy_ols": LinearAdapter(GreedyOLSAgent),
-            # "neural": NeuralAdapter(4, (1.0, 100.0), seed),
+            "neural": NeuralAdapter(4, (1.0, 100.0), seed),
             "nonlinear_xgb": NonLinearAdapter((1.0, 100.0), seed),
             "oracle": OracleWrapper(),  # INCLUDED
         }
