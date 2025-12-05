@@ -36,6 +36,11 @@ class NeuralAdapter:
     def update(self, price, ctx, demand):
         self.agent.store_transition(self.agent.normalize(ctx), price, price * demand)
 
+    def fit_offline(self, df):
+        """Optional offline pretrain hook. Agents that can warm-start may override."""
+        # default no-op: override in adapters that support it
+        return
+
 
 class LinearAdapter:
     def __init__(self, agent_cls, **kwargs):
@@ -48,6 +53,11 @@ class LinearAdapter:
         self.agent.update(
             price, np.array([1.0, ctx[0], ctx[1], ctx[2], ctx[3], -price]), demand
         )
+
+    def fit_offline(self, df):
+        """Optional offline pretrain hook. Agents that can warm-start may override."""
+        # default no-op: override in adapters that support it
+        return
 
 
 class NonLinearAdapter:
@@ -71,6 +81,11 @@ class NonLinearAdapter:
     def update(self, price, ctx, demand):
         self.agent.update(price, ctx, demand)
 
+    def fit_offline(self, df):
+        """Optional offline pretrain hook. Agents that can warm-start may override."""
+        # default no-op: override in adapters that support it
+        return
+
 
 class OracleWrapper:
     def act(self, ctx, t):
@@ -78,6 +93,11 @@ class OracleWrapper:
 
     def update(self, p, c, d):
         pass
+
+    def fit_offline(self, df):
+        """Optional offline pretrain hook. Agents that can warm-start may override."""
+        # default no-op: override in adapters that support it
+        return
 
 
 # --- RUNNER ---
@@ -125,7 +145,7 @@ def run_experiment(seeds=None, T=4000, results_dir="results"):
             "static": StaticAgent(fixed_price=55.0),
             "linear_thompson": LinearAdapter(ThompsonAgent, seed=seed),
             "greedy_ols": LinearAdapter(GreedyOLSAgent),
-            # "neural": NeuralAdapter(4, (1.0, 100.0), seed),
+            "neural": NeuralAdapter(4, (1.0, 100.0), seed),
             "nonlinear_xgb": NonLinearAdapter((1.0, 100.0), seed),
             "oracle": OracleWrapper(),  # INCLUDED
         }
