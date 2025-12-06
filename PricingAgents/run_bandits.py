@@ -8,10 +8,10 @@ import seaborn as sns
 import torch
 
 # --- IMPORTS ---
-from agents import GreedyOLSAgent, StaticAgent, ThompsonAgent
-from agents_dnn import NeuralThompsonAgent
-from agents_nonlinear import NonLinearXGBoostBandit
-from env import PricingEnv
+from PricingAgents.agents import GreedyOLSAgent, StaticAgent, ThompsonAgent
+from PricingAgents.agents_dnn import NeuralThompsonAgent
+from PricingAgents.agents_nonlinear import NonLinearXGBoostBandit
+from PricingAgents.env import PricingEnv
 
 
 # --- ADAPTERS ---
@@ -36,6 +36,11 @@ class NeuralAdapter:
     def update(self, price, ctx, demand):
         self.agent.store_transition(self.agent.normalize(ctx), price, price * demand)
 
+    def fit_offline(self, df):
+        """Optional offline pretrain hook. Agents that can warm-start may override."""
+        # default no-op: override in adapters that support it
+        return
+
 
 class LinearAdapter:
     def __init__(self, agent_cls, **kwargs):
@@ -48,6 +53,11 @@ class LinearAdapter:
         self.agent.update(
             price, np.array([1.0, ctx[0], ctx[1], ctx[2], ctx[3], -price]), demand
         )
+
+    def fit_offline(self, df):
+        """Optional offline pretrain hook. Agents that can warm-start may override."""
+        # default no-op: override in adapters that support it
+        return
 
 
 class NonLinearAdapter:
@@ -71,6 +81,11 @@ class NonLinearAdapter:
     def update(self, price, ctx, demand):
         self.agent.update(price, ctx, demand)
 
+    def fit_offline(self, df):
+        """Optional offline pretrain hook. Agents that can warm-start may override."""
+        # default no-op: override in adapters that support it
+        return
+
 
 class OracleWrapper:
     def act(self, ctx, t):
@@ -78,6 +93,11 @@ class OracleWrapper:
 
     def update(self, p, c, d):
         pass
+
+    def fit_offline(self, df):
+        """Optional offline pretrain hook. Agents that can warm-start may override."""
+        # default no-op: override in adapters that support it
+        return
 
 
 # --- RUNNER ---
