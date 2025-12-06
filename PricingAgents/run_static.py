@@ -4,12 +4,16 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 
-from env import (
+from PricingAgents.env import (
     DEFAULT_SEED,
     PRICE_BOUNDS,
     PricingEnv,  # Needed to instantiate inside loop for plotting if needed
 )
-from utils import find_optimal_static_price, fixed_price_policy, generate_run
+from PricingAgents.utils import (
+    find_optimal_static_price,
+    fixed_price_policy,
+    generate_run,
+)
 
 PLOTS_DIR = "plots"
 os.makedirs(PLOTS_DIR, exist_ok=True)

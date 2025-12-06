@@ -8,10 +8,10 @@ import seaborn as sns
 import torch
 
 # --- IMPORTS ---
-from agents import GreedyOLSAgent, StaticAgent, ThompsonAgent
-from agents_dnn import NeuralThompsonAgent
-from agents_nonlinear import NonLinearXGBoostBandit
-from env import PricingEnv
+from PricingAgents.agents import GreedyOLSAgent, StaticAgent, ThompsonAgent
+from PricingAgents.agents_dnn import NeuralThompsonAgent
+from PricingAgents.agents_nonlinear import NonLinearXGBoostBandit
+from PricingAgents.env import PricingEnv
 
 
 # --- ADAPTERS ---

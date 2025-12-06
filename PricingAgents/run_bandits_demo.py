@@ -15,12 +15,18 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import seaborn as sns
-from agents import GreedyOLSAgent, StaticAgent, ThompsonAgent
-from demand_model import DemandModel
+from sklearn.preprocessing import LabelEncoder, StandardScaler
+
+from PricingAgents.agents import GreedyOLSAgent, StaticAgent, ThompsonAgent
+from PricingAgents.demand_model import DemandModel
 
 # reuse adapters and agents from your repo
-from run_bandits import LinearAdapter, NeuralAdapter, NonLinearAdapter, OracleWrapper
-from sklearn.preprocessing import LabelEncoder, StandardScaler
+from PricingAgents.run_bandits import (
+    LinearAdapter,
+    NeuralAdapter,
+    NonLinearAdapter,
+    OracleWrapper,
+)
 
 sns.set_style("darkgrid")
 os.makedirs("results", exist_ok=True)

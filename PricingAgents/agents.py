@@ -1,6 +1,6 @@
 import numpy as np
 
-from env import PRICE_BOUNDS
+from PricingAgents.env import PRICE_BOUNDS
 
 
 class BaseAgent:

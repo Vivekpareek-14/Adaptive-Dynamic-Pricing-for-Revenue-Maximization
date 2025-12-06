@@ -29,3 +29,6 @@ Thumbs.db
 
 # ——— Logs ———
 *.log
+
+# ---WebApp---
+*/node_modules
